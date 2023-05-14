@@ -1,71 +1,141 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.gt.miumg.sistemas.operativos.Entity;
 
-import java.util.Calendar;
-import javax.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.Collection;
 
-/**
- *
- * @author Oscar
- */
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Entity
-@Table(name = "usuario")
-@Getter @Setter
-@NoArgsConstructor
-public class Usuario {
-    
+@Table(name = "usuarios")
+public class Usuario implements UserDetails {
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id_usuario;
-
-    @Column(name = "nombre", length = 64)
-    private String nombre;
-
-    @Column(name = "direccion", length = 64)
-    private String direccion;
-
-    @Column(name = "email", length = 64)
-    private String email;
-
-    @Column(name = "cui", length = 13)
-    private String cui;
-
-    @Column(name = "username", length = 16)
+    private Long id;
     private String username;
+    private String password;
+    private String nombre;
+    private String apellido;
+    private String email;
+    private String telefono;
+    private boolean enabled = true;
+    private String perfil;
 
-    @Column(name = "clave", length = 16)
-    private String clave;
 
-    @Column(name = "rol", length = 2)
-    private String rol;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "usuario")
+    @JsonIgnore
+    private Set<UsuarioRol> usuarioRoles = new HashSet<>();
 
+    public Long getId() {
+        return id;
+    }
 
-    @Column(name = "estado", length = 1)
-    private String estado;
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-   
-    @Column(name = "usuario_creacion")
-    private String usuario_creacion;//varchar(16),--usar dpi o nit
+    public String getUsername() {
+        return username;
+    }
 
-    @Column(name = "usuario_modificacion")
-    private String usuario_modificacion;// varchar(16),
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-   
+    public String getPassword() {
+        return password;
+    }
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "fecha_creacion",
-            columnDefinition ="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
-    private Calendar fecha_creacion;
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "fecha_modificacion", 
-            columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Calendar fecha_modificacion;
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
+    }
+
+    public void setApellido(String apellido) {
+        this.apellido = apellido;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTelefono() {
+        return telefono;
+    }
+
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public String getPerfil() {
+        return perfil;
+    }
+
+    public void setPerfil(String perfil) {
+        this.perfil = perfil;
+    }
+
+    public Set<UsuarioRol> getUsuarioRoles() {
+        return usuarioRoles;
+    }
+
+    public void setUsuarioRoles(Set<UsuarioRol> usuarioRoles) {
+        this.usuarioRoles = usuarioRoles;
+    }
+
+    public Usuario() {
+
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        Set<Authority> autoridades = new HashSet<>();
+        this.usuarioRoles.forEach(usuarioRol -> {
+            autoridades.add(new Authority(usuarioRol.getRol().getNombre()));
+        });
+        return autoridades;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
 }

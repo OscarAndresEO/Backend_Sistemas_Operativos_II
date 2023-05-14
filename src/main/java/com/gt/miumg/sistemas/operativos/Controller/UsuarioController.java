@@ -1,63 +1,55 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.gt.miumg.sistemas.operativos.Controller;
 
-/**
- *
- * @author Oscar
- */
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import com.gt.miumg.sistemas.operativos.Entity.Rol;
 import com.gt.miumg.sistemas.operativos.Entity.Usuario;
+import com.gt.miumg.sistemas.operativos.Entity.UsuarioRol;
 import com.gt.miumg.sistemas.operativos.Service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.Set;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @RestController
-@RequestMapping("usuarios")
+@RequestMapping("/usuarios")
 @CrossOrigin("*")
 public class UsuarioController {
 
     @Autowired
     private UsuarioService usuarioService;
+    
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    @PostMapping("/")
+    public Usuario guardarUsuario(@RequestBody Usuario usuario) throws  Exception{
+        usuario.setPerfil("default.png");
+        
+        usuario.setPassword(this.bCryptPasswordEncoder.encode(usuario.getPassword()));
+        
+        Set<UsuarioRol> usuariosRoles = new HashSet<>();
+        Rol rol = new Rol();
+        rol.setRolId(2L);
+        rol.setNombre("NORMAL");
 
-    @PostMapping("/crear")
-    public ResponseEntity<Usuario> crear(@RequestBody Usuario usuario){
-        return ResponseEntity.ok(usuarioService.SaveUsuario(usuario));
+        UsuarioRol usuarioRol = new UsuarioRol();
+        usuarioRol.setUsuario(usuario);
+        usuarioRol.setRol(rol);
+
+        usuariosRoles.add(usuarioRol);
+        return usuarioService.guardarUsuario(usuario, usuariosRoles);
     }
 
-    @GetMapping("/listar")
-    public ResponseEntity<List<Usuario>> listar(){
-        List<Usuario> list = usuarioService.findAll();
-        if(list.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(list);
+    @GetMapping("/{username}")
+    @Operation(summary = "prueba unitaria :v", description = "holi que hace perro, durmiendo o khe hace")
+    public Usuario obtenerUsuario(@PathVariable("username") String username){
+        return usuarioService.obtenerUsuario(username);
     }
 
-    @GetMapping("/eliminar/{id_usuario}")
-    public void eliminar(@PathVariable int id_usuario){
-        usuarioService.eliminar(id_usuario);
+    @DeleteMapping("/{UsuarioId}")
+    public void eliminarUsuario(@PathVariable("usuarioId")Long usuarioId){
+        usuarioService.eliminarUsuario(usuarioId);
     }
-
-    @GetMapping("/buscar/{id_usuario}")
-    public ResponseEntity<Usuario> buscarPorId(@PathVariable int id_usuario){
-        Usuario usuario = usuarioService.findById(id_usuario);
-        if(usuario==null){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(usuario);
-    }
-/*
-    @PostMapping("/login")
-    public ResponseEntity<Optional<Usuario>> login(@RequestBody UsuarioDTO usuario){
-        return ResponseEntity.ok(usuarioService.login(usuario));
-    }*/
 }
-
