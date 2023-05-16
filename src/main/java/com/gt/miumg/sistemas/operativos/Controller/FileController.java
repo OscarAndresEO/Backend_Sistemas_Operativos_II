@@ -1,55 +1,68 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.gt.miumg.sistemas.operativos.Controller;
 
-import com.gt.miumg.sistemas.operativos.Service.FileSystemService;
-import io.github.classgraph.Resource;
-import java.io.IOException;
-import org.springframework.http.ResponseEntity;
-import java.nio.file.*;
-import java.io.File;
-import org.springframework.core.io.ByteArrayResource;
+import com.gt.miumg.sistemas.operativos.Entity.Documento;
+import com.gt.miumg.sistemas.operativos.Service.FileServiceAPI;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
+import com.gt.miumg.sistemas.operativos.Entity.Documento;
+import com.gt.miumg.sistemas.operativos.Entity.Response;
+import com.gt.miumg.sistemas.operativos.dto.DocumentoDto;
+//import com.example.demomultiplefileupload.model.File;
+//import com.example.demomultiplefileupload.model.Response;
+//import com.example.demomultiplefileupload.service.FileServiceAPI;
 
-/**
- *
- * @author Oscar
- */
 @RestController
+@RequestMapping("/files")
 public class FileController {
-/*
-    private final FileSystemService fileSystemService;
 
-    public FileController(FileSystemService fileSystemService) {
-        this.fileSystemService = fileSystemService;
+    @Autowired
+    private FileServiceAPI fileServiceAPI;
+
+    @PostMapping("/upload/{id_usuario}")
+    public ResponseEntity<Response> uploadFiles(@RequestParam("files") List<MultipartFile> files, @PathVariable Integer id_usuario) {
+        try {
+            fileServiceAPI.save(files, id_usuario);
+        } catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new Response("Ocurrio un error interno"));
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new Response("Los archivos fueron cargados correctamente al servidor"));
     }
 
-    @GetMapping("/file/{fileName}")
-    public ResponseEntity<ByteArrayResource> downloadFile(@PathVariable String fileName) throws IOException {
-        File file = fileSystemService.getFileByName(fileName);
-
-        if (file == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(file.toPath()));
-
+    @GetMapping("/{filename:.+}")
+    public ResponseEntity<Resource> getFile(@PathVariable String filename) throws Exception {
+        Resource resource = fileServiceAPI.load(filename);
         return ResponseEntity.ok()
-                .contentLength(file.length())
-                .contentType(MediaType.parseMediaType("application/octet-stream"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
 
-    @PostMapping("/file")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile multipartFile) throws IOException {
-        fileSystemService.saveFile(multipartFile.getOriginalFilename(), multipartFile.getBytes());
+    @GetMapping("/all")
+    public ResponseEntity<List<DocumentoDto>> getAllFiles() throws Exception {
+        List<DocumentoDto> files = fileServiceAPI.loadAll().map(path -> {
+            String filename = path.getFileName().toString();
+            String url = MvcUriComponentsBuilder.fromMethodName(FileController.class, "getFile", path.getFileName().toString()).build().toString();
 
-        return ResponseEntity.ok("File uploaded successfully");
-    }*/
+            return new DocumentoDto(filename, url);
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.status(HttpStatus.OK).body(files);
+    }
+
 }

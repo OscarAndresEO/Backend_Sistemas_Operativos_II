@@ -5,6 +5,7 @@
 package com.gt.miumg.sistemas.operativos.Entity;
 
 import java.util.Calendar;
+import java.util.Date;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,39 +15,32 @@ import lombok.Setter;
  *
  * @author Oscar
  */
-
 @Entity
-@Table(name = "Documento")
-@Getter @Setter
+@Table(name = "documentos")
+@Getter
+@Setter
 @NoArgsConstructor
 public class Documento {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id_Documento;
+    private int idDocumento;
 
     @Column(name = "nombreDocumento", length = 64)
     private String nombre;
 
-    @Column(name = "linkDocumento", length = 64)
-    private String linkDocumento;
-
+    @Column(name = "propietario", length = 50)
+    private String propietario;
 
     @Column(name = "estado", length = 1)
     private String estado;
 
-
-    @Column(name = "usuario_modificacion")
+    @Column(name = "usuariomodificacion")
     private String usuario_modificacion;// varchar(16),
 
-
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "fecha_creacion",
-            columnDefinition ="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
-    private Calendar fecha_creacion;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "fecha_modificacion", 
+    @Column(name = "fechamodificaciondocumento",
             columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Calendar fecha_modificacion;
+    private Date fecha_modificacion;
+
 }

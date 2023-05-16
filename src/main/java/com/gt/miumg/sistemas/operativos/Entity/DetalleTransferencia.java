@@ -4,6 +4,7 @@
  */
 package com.gt.miumg.sistemas.operativos.Entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Calendar;
 import javax.persistence.*;
 import lombok.Getter;
@@ -14,25 +15,23 @@ import lombok.Setter;
  *
  * @author Oscar
  */
-
 @Entity
-@Table(name = "Detalle_Transferencia")
-@Getter @Setter
+@Table(name = "detalle_transferencia")
+@Getter
+@Setter
 @NoArgsConstructor
 public class DetalleTransferencia {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idDetalle;
+    private Integer idDetalle;
 
+    @Column(name = "idtransferencia", length = 1)
+    private Integer idTransferencia;
 
-
-    @Column(name = "idTransferencia", length = 1)
-    private String idTransferencia;
-
-   
-    @Column(name = "idDocumento")
-    private String idDocumento;//varchar(16),--usar dpi o nit
-
-   
+    //@JsonIgnoreProperties(value = {"handler", "hibernateLazyInitializer"})
+    /*@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idDocumento")
+    private Documento documento;  */
+    int idDocumento;
 }

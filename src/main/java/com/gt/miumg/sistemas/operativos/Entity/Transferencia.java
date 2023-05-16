@@ -5,6 +5,7 @@
 package com.gt.miumg.sistemas.operativos.Entity;
 
 import java.util.Calendar;
+import java.util.Date;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,23 +17,21 @@ import lombok.Setter;
  */
 
 @Entity
-@Table(name = "Transferencia")
+@Table(name = "transferencia")
 @Getter @Setter
 @NoArgsConstructor
 public class Transferencia {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int idTransferencia;
+    private Integer idTransferencia;
 
-    @Column(name = "id_usuario", length = 64)
-    private String id_usuario;
-
-    
+    @Column(name = "codigoUsuario", length = 64)
+    private Integer id_usuario;    
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "fechaTransferencia",
             columnDefinition ="TIMESTAMP DEFAULT CURRENT_TIMESTAMP" )
-    private Calendar fechaTransferencia;
+    private Date fechaTransferencia;
 
 }
