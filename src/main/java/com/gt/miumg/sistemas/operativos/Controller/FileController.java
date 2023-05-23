@@ -20,26 +20,57 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import com.gt.miumg.sistemas.operativos.Entity.Documento;
 import com.gt.miumg.sistemas.operativos.Entity.Response;
+import com.gt.miumg.sistemas.operativos.dto.DatosDocumentoDTO;
 import com.gt.miumg.sistemas.operativos.dto.DocumentoDto;
-//import com.example.demomultiplefileupload.model.File;
-//import com.example.demomultiplefileupload.model.Response;
-//import com.example.demomultiplefileupload.service.FileServiceAPI;
+import com.gt.miumg.sistemas.operativos.projection.DatosDocumentoProjection;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Date;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestPart;
+
+
+/**
+ *
+ * @author Oscar
+ */
 
 @RestController
 @RequestMapping("/files")
 public class FileController {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
+
     @Autowired
     private FileServiceAPI fileServiceAPI;
 
-    @PostMapping("/upload/{id_usuario}")
-    public ResponseEntity<Response> uploadFiles(@RequestParam("files") List<MultipartFile> files, @PathVariable Integer id_usuario) {
+    @PostMapping("/save")
+    public ResponseEntity uploadFiles(@RequestParam("file") MultipartFile[] files,
+            @RequestParam("propietario") String propietario,
+            @RequestParam("fecha") String fecha,
+            @RequestParam("usuarioCreacion") String usuarioCreacion) throws Exception {
+
         try {
-            fileServiceAPI.save(files, id_usuario);
-        } catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new Response("Ocurrio un error interno"));
+            logger.info("Se inició la operación de guardar el archivo");
+            DatosDocumentoDTO datos = new DatosDocumentoDTO();
+            datos.setFile(files);
+            datos.setPropietario(propietario);
+            datos.setFecha(new Date(fecha));
+            datos.setUsuario_Creacion(Integer.parseInt(usuarioCreacion));
+
+            fileServiceAPI.save(datos);
+
+            logger.info("Se finalizó la operación de guardar el archivo");
+        } catch (IOException e) {
+            logger.error("Mensaje de error: " + e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new Response("Ocurrió un error interno"));
         }
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new Response("Los archivos fueron cargados correctamente al servidor"));
@@ -47,10 +78,23 @@ public class FileController {
 
     @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> getFile(@PathVariable String filename) throws Exception {
+        logger.info("Se inicio la operacion de busqueda de archivo");
+
         Resource resource = fileServiceAPI.load(filename);
+        logger.info("Se recibieron los parametros para buscar el archivo: " + filename);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
+    }
+
+    @GetMapping("/findDocumentosByPropietario")
+    public List<DatosDocumentoProjection> getDocumentosByPropietario(
+            @RequestParam("propietario") String propietario,
+        @RequestParam("FechaInicio") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaInicio,
+        @RequestParam("FechaFinal") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate fechaFinal) {
+        logger.info("Se inicio la operacion de busqueda de archivos segun el propietario");
+        return fileServiceAPI.getDocumentosByPropietario(propietario,  fechaInicio,fechaFinal);
+
     }
 
     @GetMapping("/all")
